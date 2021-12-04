@@ -32,40 +32,39 @@ character_list = [
 class CharacterView(APIView):
 	def get(self, request, *args, **kwargs):
 		all_chars = Character.objects.all()
-
 		all_chars_list = []
+
 		for char in all_chars:
 			serialized_data = CharacterSerializer(char)
 			all_chars_list.append(serialized_data.data)
 		
-		print('Here\'s all the chars')
-		print(all_chars_list)
+		return Response({
+			"data": all_chars_list,
+			"message": f"Successfully found {len(all_chars_list)} characters",
+			"status": 200
+			})
 
 
-		return Response({"data": all_chars_list})
+class CharacterSeedView(APIView):
+	def post(self, request, *args, **kwargs):
+		db_chars = Character.objects.all()
+		if len(db_chars) == 19:
+			return Response({
+				"data": None,
+				"message": f"No seeding performed, characters already exist",
+				"status": 200
+				})
 
+		all_chars_data = []
 
-# class CharacterSeedView(APIView):
-# 	def get(self, request, *args, **kwargs):
-# 		all_chars = Character.objects.all()
+		for character in character_list:
+			new_char = Character(name=character)
+			new_char.save()
+			all_chars_data.append(CharacterSerializer(new_char).data)
 
-# 		all_chars_list = []
-# 		for char in all_chars:
-# 			serialized_data = CharacterSerializer(char)
-# 			all_chars_list.append(serialized_data.data)
-		
-# 		print('Here\'s all the chars')
-# 		print(all_chars_list)
-
-
-# 		return Response({"data": all_chars_list})
-
-# 	def post(self, request, *args, **kwargs):
-# 		# for character in character_list:
-# 		# 	new_char = Character(name=character)
-# 		# 	new_char.save()
-
-# 		# all_chars = Character.objects.all()
-# 		print(json.loads(request.body))
-# 		return Response(request.body)
+		return Response({
+			"data": all_chars_data,
+			"message": f"Successfully created {len(all_chars_data)} characters",
+			"status": 200
+			})
 
