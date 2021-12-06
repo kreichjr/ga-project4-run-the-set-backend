@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.db import models
+from django.db.models import Q
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -74,6 +75,12 @@ class MatchView(APIView):
 
 	def post(self, request, *args, **kwargs):
 		payload = parse(request.body)
+		if payload['player_1'] == payload['player_2']:
+			return Response({
+				"data": None,
+				"message": "Player 1 and Player 2 cannot be the same",
+				"status": 400
+				})
 
 		try:
 			player_1 = Player.objects.get(id=payload['player_1'])
@@ -128,6 +135,25 @@ class MatchView(APIView):
 
 		
 class MatchViewWithID(APIView):
+	def get(self, request, id):
+		try:
+			match = Match.objects.get(id=id)
+		except models.ObjectDoesNotExist:
+			return Response({
+				"data": None,
+				"message": "Unable to get match - Match ID does not exist",
+				"status": 400
+				})
+
+		data = MatchSerializer(match).data
+
+		return Response({
+				"data": data,
+				"message": f"Successfully returned match id {id}",
+				"status": 200
+				})
+
+
 	def put(self, request, id):
 		payload = parse(request.body)
 
@@ -181,7 +207,26 @@ class MatchViewWithID(APIView):
 				})
 
 
+class MatchFilterViewWithID(APIView):
+	def get(self, request, id):
+		try:
+			player = Player.objects.get(id=id)
+			
+		except models.ObjectDoesNotExist:
+			return Response({
+				"data": None,
+				"message": "Error",
+				"status": 400
+				})
 
+		matches = Match.objects.filter(Q(player_1__exact=id) | Q(player_2__exact=id))
+		data = [MatchSerializer(match).data for match in matches]
+
+		return Response({
+				"data": data,
+				"message": f"Successfully returned {len(data)} matches for {player.name}",
+				"status": 200
+				})
 
 
 
