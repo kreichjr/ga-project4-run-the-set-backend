@@ -219,22 +219,42 @@ class MatchFilterViewWithID(APIView):
 				"status": 400
 				})
 
-		char_filter = request.GET.get('char', None)
+		char_id     = request.GET.get('char', None)
+		opponent_id = request.GET.get('opponent', None)
+		played_char = None
+		opponent    = None
+
+		p1_query = Q(player_1__exact=id)
+		p2_query = Q(player_2__exact=id)
+
+		if char_id:
+			try:
+				played_char = Character.objects.get(id=char_id)
+			except models.ObjectDoesNotExist:
+				played_char = None
+
+			p1_query = p1_query & Q(p1_char__exact=char_id)
+			p2_query = p2_query & Q(p2_char__exact=char_id)
+
+		if opponent_id:
+			try:
+				opponent = Player.objects.get(id=opponent_id)
+			except models.ObjectDoesNotExist as e:
+				opponent = None
+
+			p1_query = p1_query & Q(player_2__exact=opponent_id)
+			p2_query = p2_query & Q(player_1__exact=opponent_id)
+			
 		
-		if char_filter:
-			p1_matches = Match.objects.filter(Q(player_1__exact=id) & Q(p1_char__exact=char_filter))
-			p2_matches = Match.objects.filter(Q(player_2__exact=id) & Q(p2_char__exact=char_filter))
-		else:
-			p1_matches = Match.objects.filter(Q(player_1__exact=id))
-			p2_matches = Match.objects.filter(Q(player_2__exact=id))
-		
+		p1_matches = Match.objects.filter(p1_query)
+		p2_matches = Match.objects.filter(p2_query)
 		p1_won_match_count = 0
 		p2_won_match_count = 0
+
 		for match in p1_matches:
 			p1_won_match_count = p1_won_match_count + 1 if match.p1_is_winner else p1_won_match_count
 		for match in p2_matches:
 			p2_won_match_count = p2_won_match_count + 1 if not match.p1_is_winner else p2_won_match_count
-		
 		
 		match_list = [MatchSerializer(p1_match).data for p1_match in p1_matches] + [MatchSerializer(p2_match).data for p2_match in p2_matches]
 		match_count = len(match_list)
@@ -246,11 +266,17 @@ class MatchFilterViewWithID(APIView):
 			"total_matches": match_count
 		}
 
+		message = f'Successfully returned {match_count} matches for {player.name}'
+		if played_char is not None:
+			message = message + f' as {played_char.name}'
+		if opponent is not None:
+			message = message + f' against {opponent.name}' if opponent is not None else message
+
 		return Response({
-				"data": data,
-				"message": f"Successfully returned {match_count} matches for {player.name}",
-				"status": 200
-				})
+			"data": data,
+			"message": message,
+			"status": 200
+			})
 
 
 
