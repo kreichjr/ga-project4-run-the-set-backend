@@ -270,7 +270,7 @@ class MatchFilterViewWithID(APIView):
 		if played_char is not None:
 			message = message + f' as {played_char.name}'
 		if opponent is not None:
-			message = message + f' against {opponent.name}' if opponent is not None else message
+			message = message + f' against {opponent.name}'
 
 		return Response({
 			"data": data,

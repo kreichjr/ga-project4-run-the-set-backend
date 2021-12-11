@@ -32,16 +32,15 @@ character_list = [
 class CharacterView(APIView):
 	def get(self, request, *args, **kwargs):
 		all_chars = Character.objects.all()
-		all_chars_dict = {}
+		all_chars_list = []
 
 		for char in all_chars:
 			serialized_data = CharacterSerializer(char)
-
-			all_chars_dict[serialized_data.data['id']] = serialized_data.data['name']
+			all_chars_list.append(serialized_data.data)
 		
 		return Response({
-			"data": all_chars_dict,
-			"message": f"Successfully found {len(all_chars_dict)} characters",
+			"data": all_chars_list,
+			"message": f"Successfully found {len(all_chars_list)} characters",
 			"status": 200
 			})
 
