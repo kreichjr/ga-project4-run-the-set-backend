@@ -38,9 +38,9 @@ class PlayerView(APIView):
 
 	def post(self, request, *args, **kwargs):
 		payload = parse(request.body)
-		
+		print(payload)
 		try:
-			default_char = Character.objects.get(name=payload['default_char'])
+			default_char = Character.objects.get(id=payload['default_char'])
 			new_player = Player(name=payload["name"], default_char=default_char)
 			new_player.save()
 
@@ -68,7 +68,7 @@ class PlayerViewWithID(APIView):
 
 			return Response({
 				"data": data,
-				"message": "Successfully found character",
+				"message": f"Successfully found the player {player.name}",
 				"status": 200 
 				})
 
@@ -95,7 +95,7 @@ class PlayerViewWithID(APIView):
 
 		if payload.get('default_char') is not None:
 			try: 
-				updated_char = Character.objects.get(name=payload['default_char'])
+				updated_char = Character.objects.get(id=payload['default_char'])
 				player.default_char = updated_char
 			except models.ObjectDoesNotExist:
 				return Response({
@@ -124,7 +124,7 @@ class PlayerViewWithID(APIView):
 
 			return Response({
 				"data": data,
-				"message": "The character was successfully deleted",
+				"message": f"The player {data['name']} was successfully deleted",
 				"status": 200 
 				})
 
