@@ -68,6 +68,7 @@ MIDDLEWARE = [
 
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:3000",
+    "https://runtheset.herokuapp.com"
 ]
 
 ROOT_URLCONF = 'run_the_set_backend.urls'
